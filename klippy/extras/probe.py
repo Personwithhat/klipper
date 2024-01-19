@@ -272,7 +272,7 @@ class PrinterProbe:
         # Move the nozzle over the probe point
         curpos[0] += self.x_offset
         curpos[1] += self.y_offset
-        self._move(curpos, self.speed)
+        self._move(curpos, lift_speed)
         # Start manual probe
         manual_probe.ManualProbeHelper(self.printer, gcmd,
                                        self.probe_calibrate_finalize)
@@ -395,10 +395,7 @@ class ProbePointsHelper:
         toolhead = self.printer.lookup_object('toolhead')
         # Lift toolhead
         speed = self.lift_speed
-        if not self.results:
-            # Use full speed to first probe position
-            speed = self.speed
-        toolhead.manual_move([None, None, self.horizontal_move_z], speed)
+        toolhead.manual_move([None, None, self.probe_offsets[2] + self.horizontal_move_z], speed)
         # Check if done probing
         if len(self.results) >= len(self.probe_points):
             toolhead.get_last_move_time()
@@ -428,12 +425,17 @@ class ProbePointsHelper:
             self.probe_offsets = (0., 0., 0.)
             self._manual_probe_start()
             return
+
         # Perform automatic probing
         self.lift_speed = probe.get_lift_speed(gcmd)
         self.probe_offsets = probe.get_offsets()
-        if self.horizontal_move_z < self.probe_offsets[2]:
-            raise gcmd.error("horizontal_move_z can't be less than"
-                             " probe's z_offset")
+
+        ## Move to (0,0,?) while accounting for probe X and Y offset + dock z_hop + probe itself whacking dock. This is JIC so it clears dock.
+        toolhead = self.printer.lookup_object('toolhead')
+        dock = self.printer.lookup_object('xz_dockable_probe')
+        toolhead.manual_move([None, None, dock.z_hop], self.lift_speed)
+        toolhead.manual_move([-self.probe_offsets[0]+5, -self.probe_offsets[1]+5, None], self.lift_speed)
+
         probe.multi_probe_begin()
         while 1:
             done = self._move_next()

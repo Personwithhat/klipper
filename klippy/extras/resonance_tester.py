@@ -160,7 +160,7 @@ class ResonanceTester:
             test_points = self.test.get_start_test_points()
 
         for point in test_points:
-            toolhead.manual_move(point, self.move_speed)
+            #toolhead.manual_move(point, self.move_speed)
             if len(test_points) > 1 or test_point is not None:
                 gcmd.respond_info(
                         "Probing point (%.3f, %.3f, %.3f)" % tuple(point))

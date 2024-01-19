@@ -129,6 +129,15 @@ class BedMesh:
     def handle_connect(self):
         self.toolhead = self.printer.lookup_object('toolhead')
         self.bmc.print_generated_points(logging.info)
+
+        ## Make sure maximum when account for probe offset is within bounds. (Assumes probe between origin and nozzle, so limiting factor would be axis maximums.)
+        kin_status = self.toolhead.get_kinematics().get_status(None)
+        x_off,y_off,z_off = self.printer.lookup_object('probe').get_offsets()
+        if self.bmc.mesh_max[0]-x_off > kin_status['axis_maximum'][0] or self.bmc.mesh_max[1]-y_off > kin_status['axis_maximum'][1]:
+            raise self.gcode.error(
+                  'bed_mesh: max out of bounds x: %d y: %d' 
+                  % (self.bmc.mesh_max[0]-x_off - kin_status['axis_maximum'][0], self.bmc.mesh_max[1]-y_off - kin_status['axis_maximum'][1]))
+
     def set_mesh(self, mesh):
         if mesh is not None and self.fade_end != self.FADE_DISABLE:
             self.log_fade_complete = True

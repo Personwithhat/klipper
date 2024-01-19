@@ -20,10 +20,14 @@ class ScrewsTiltAdjust:
             prefix = "screw%d" % (i + 1,)
             if config.get(prefix, None) is None:
                 break
-            screw_coord = config.getfloatlist(prefix, count=2)
-            screw_name = "screw at %.3f,%.3f" % screw_coord
+            screw_coord = list(config.getfloatlist(prefix, count=2))
+            x_off,y_off,z_off = self.printer.lookup_object('probe').get_offsets()
+            screw_coord[0] -= x_off;
+            screw_coord[1] -= y_off;
+            screw_name = "screw at %.3f,%.3f" % tuple(screw_coord)
             screw_name = config.get(prefix + "_name", screw_name)
             self.screws.append((screw_coord, screw_name))
+
         if len(self.screws) < 3:
             raise config.error("screws_tilt_adjust: Must have "
                                "at least three screws")
