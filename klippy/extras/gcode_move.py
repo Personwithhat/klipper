@@ -239,6 +239,8 @@ class GCodeMove:
         if gcmd.get_int('MOVE', 0):
             speed = gcmd.get_float('MOVE_SPEED', self.speed, above=0.)
             self.last_position[:3] = state['last_position'][:3]
+            pos = self.position_with_transform()
+            self.move_with_transform([pos[0], pos[1], self.last_position[2], pos[3]], speed) ## Z first to avoid hitting anything!
             self.move_with_transform(self.last_position, speed)
     cmd_GET_POSITION_help = (
         "Return information on the current location of the toolhead")
