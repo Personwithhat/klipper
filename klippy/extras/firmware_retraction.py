@@ -95,14 +95,16 @@ class FirmwareRetraction:
     ###### Helper method to evaluate to clear retraction if certain events occur
     # (must accept all arguments passed from event handlers)
     def _evaluate_retraction(self, *args):
-        if self.is_retracted:                               # Check if retracted
-                if self.vsdcard_paused:          # Check if VSDCard print paused
+        ## No-Op, handle this through my print_start/etc. macros instead. PA doesn't auto-fix itself so neither should this.
+	return 1;
+        #if self.is_retracted:                               # Check if retracted
+        #        if self.vsdcard_paused:          # Check if VSDCard print paused
                     # Reset paused flag and hence do not clear retraction on
                     # resume command.
-                    self.vsdcard_paused = False
-                else:
+        #            self.vsdcard_paused = False
+        #        else:
                     # If cancel command triggered pause event, clear retraction.
-                    self._execute_clear_retraction()
+        #            self._execute_clear_retraction()
 
     ################## Helper method to return the current retraction parameters
     def get_status(self, eventtime):
@@ -168,13 +170,9 @@ class FirmwareRetraction:
         or zhop, if enabled')
 
     def cmd_CLEAR_RETRACTION(self, gcmd):
-        if self.is_retracted:
-            self._execute_clear_retraction()
-            gcmd.respond_info('Retraction was cleared and reset to config \
+        self._execute_clear_retraction()
+        gcmd.respond_info('Retraction was cleared and reset to config \
                 values. zhop is undone on next move.')
-        else:
-            gcmd.respond_info('WARNING: Printer is not retracted. \
-                Command has been ignored!')
 
     ################################################# Helper to clear retraction
     def _execute_clear_retraction(self):
